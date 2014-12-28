@@ -24,5 +24,6 @@
 #include <util/setbaud.h>
 
 int main(void);
+void parseInput(void);
 
 #endif /* MAIN_H_ */

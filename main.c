@@ -15,11 +15,33 @@ int main(void) {
 	sei();
 	
     while(1) {
+		/*
 		if (uart_char_waiting()) {
 			uart_putchar(uart_getchar());
-		}
+			send_step();
+		}*/
+		parseInput();
+		send_step();
     }
 }
+
+void parseInput(void) {
+	char buffer[30];
+	char* p = buffer;
+	while (1) {
+		if(uart_char_waiting()) {
+			*p = uart_getchar();
+			uart_putchar(*p);
+			if (*p == '\r') {
+				*p = '\0';
+				break;
+			}
+			p++;
+		}
+	}
+	set_step_target(0,atoi(buffer));
+}
+
 
 /*
 unsigned long count = 0;

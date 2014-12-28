@@ -7,16 +7,12 @@
 
 #include "main.h"
 
-#define DATA (1<<PB5) //MOSI
-#define LATCH (1<<PB4) //SS
-#define CLOCK (1<<PB7) //SCK
-#define SHIFT_ENABLE (1<<PA7)
-#define SHIFT_CLEAR (1<<PA6)
-#define STEPPER_RESET (1<<PA3)
-#define STEPPER_SLEEP (1<<PA4)
-#define STEPPER_ENABLE (1<<PA5)
+unsigned long stepperCounts[STEPPER_COUNT];
+unsigned long stepperTargets[STEPPER_COUNT];
+
 
 //TODO: handle fault conditions
+
 
 void init_steppers(void) {
 	DDRB |= (DATA | LATCH | CLOCK);		//Set shift control pins as outputs
@@ -27,6 +23,12 @@ void init_steppers(void) {
 	PORTA &= ~(STEPPER_ENABLE | SHIFT_ENABLE);												//set pins low
 	
 	init_SPI();
+	
+	//initialize stepper counts and tagets to zero
+	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
+		stepperCounts[i] = 0;
+		stepperTargets[i] = 0;
+	}
 }
 
 void init_SPI(void){
@@ -40,20 +42,29 @@ void spi_send(unsigned char byte){
 }
 
 void send_step(void) {	
-	//clear shift register
-	PORTA &= ~SHIFT_CLEAR;		//write low
-	PORTA |= SHIFT_CLEAR; 		//write high
-	//Toggle latch to copy data to the storage register
-	PORTB |= LATCH;
-	PORTB &= ~LATCH;
 	
-	//send step signal
-	spi_send((unsigned char)0b00000000);
-	spi_send((unsigned char)0b00000000);
-	spi_send((unsigned char)0b00000001);
-	//Toggle latch to copy data to the storage register
-	PORTB |= LATCH;
-	PORTB &= ~LATCH;
+	while (stepperCounts[0] != stepperTargets[0]) {
+		//clear shift register
+		PORTA &= ~SHIFT_CLEAR;		//write low
+		PORTA |= SHIFT_CLEAR; 		//write high
+		//Toggle latch to copy data to the storage register
+		PORTB |= LATCH;
+		PORTB &= ~LATCH;
 	
-	_delay_ms(2);	
+		//send step signal
+		spi_send((unsigned char)0b00000000);
+		spi_send((unsigned char)0b00000000);
+		spi_send((unsigned char)0b00000001 | ((stepperCounts[0] > stepperTargets[0]) << 1) );
+		//Toggle latch to copy data to the storage register
+		PORTB |= LATCH;
+		PORTB &= ~LATCH;
+		
+		stepperCounts[0] += stepperCounts[0] < stepperTargets[0] ? 1 : -1;
+		
+		_delay_ms(3);
+	}
+}
+
+void set_step_target(unsigned int stepper, unsigned long target){
+	stepperTargets[stepper] = target;
 }

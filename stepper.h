@@ -9,10 +9,22 @@
 #ifndef STEPPER_H_
 #define STEPPER_H_
 
+#define DATA (1<<PB5) //MOSI
+#define LATCH (1<<PB4) //SS
+#define CLOCK (1<<PB7) //SCK
+#define SHIFT_ENABLE (1<<PA7)
+#define SHIFT_CLEAR (1<<PA6)
+#define STEPPER_RESET (1<<PA3)
+#define STEPPER_SLEEP (1<<PA4)
+#define STEPPER_ENABLE (1<<PA5)
+
+#define STEPPER_COUNT 12
+
 
 void init_steppers(void);
 void init_SPI(void);
 void spi_send(unsigned char byte);
-
+void send_step(void);
+void set_step_target(unsigned int stepper, unsigned long target);
 
 #endif /* STEPPER_H_ */
