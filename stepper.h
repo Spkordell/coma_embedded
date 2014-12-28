@@ -2,7 +2,7 @@
  * stepper.h
  *
  * Created: 12/27/2014 10:24:45 PM
- *  Author: Steven
+ *  Author: Steve Kordell
  */ 
 
 

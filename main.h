@@ -14,10 +14,12 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stdlib.h>
 
-#include "stepper.h"
+#include "Stepper.h"
 #include "FIFO.h"
 #include "UART.h"
+#include "Timer.h"
 
 #include <util/setbaud.h>
 
