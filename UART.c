@@ -7,8 +7,10 @@
 
 #include "main.h"
 
-FIFO in_buffer;
-FIFO out_buffer;
+volatile FIFO in_buffer;
+volatile FIFO out_buffer;
+char in_fifo[UART_IN_FIFO_SIZE];
+char out_fifo[UART_OUT_FIFO_SIZE];
 
 /**
  * \brief UART data register empty interrupt handler
@@ -66,8 +68,12 @@ void init_uart(void) {
 	// initialize the in and out buffer for the UART
 	in_buffer.head = 0;
 	in_buffer.tail = 0;
+	in_buffer.size = UART_IN_FIFO_SIZE;
+	in_buffer.fifo = in_fifo;
 	out_buffer.head = 0;
 	out_buffer.tail = 0;
+	in_buffer.size = UART_OUT_FIFO_SIZE;
+	out_buffer.fifo = out_fifo;
 }
 
 /**

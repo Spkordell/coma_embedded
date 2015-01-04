@@ -9,12 +9,11 @@
 #ifndef FIFO_H_
 #define FIFO_H_
 
-#define FIFO_SIZE 2048
-
 struct fifo {
 	volatile int head;
 	volatile int tail;
-	char fifo[FIFO_SIZE];
+	int size;
+	char* fifo;	
 };
 
 typedef struct fifo FIFO;
