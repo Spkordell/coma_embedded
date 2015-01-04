@@ -7,8 +7,8 @@
 
 #include "main.h"
 
-unsigned long stepperCounts[STEPPER_COUNT];
-unsigned long stepperTargets[STEPPER_COUNT];
+unsigned long currentStepperCounts[STEPPER_COUNT];
+volatile unsigned long instructionBuffer[INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT+1]; //instructionBuffer[n][0] = timestamp, instructionBuffer[n][1..12] = targer stepper count
 
 
 //TODO: handle fault conditions
@@ -24,10 +24,14 @@ void init_steppers(void) {
 	
 	init_SPI();
 	
-	//initialize stepper counts and tagets to zero
+	//initialize stepper counts and instruction buffer to 0
 	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
-		stepperCounts[i] = 0;
-		stepperTargets[i] = 0;
+		currentStepperCounts[i] = 0;
+	}
+	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
+		for (unsigned int j = 0; j < STEPPER_COUNT+1; j++) {
+			instructionBuffer[i][j] = 0;
+		}
 	}
 }
 
@@ -41,30 +45,69 @@ void spi_send(unsigned char byte){
 	while(!(SPSR & (1<<SPIF))); //Wait for SPI process to finish
 }
 
-void send_step(void) {	
+void send_step_instruction(char instruction) {
+	long stepperTargets[STEPPER_COUNT];
+	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
+		stepperTargets[i] = instructionBuffer[instruction][i+1];
+	}
 	
-	while (stepperCounts[0] != stepperTargets[0]) {
-		//clear shift register
-		PORTA &= ~SHIFT_CLEAR;		//write low
-		PORTA |= SHIFT_CLEAR; 		//write high
-		//Toggle latch to copy data to the storage register
-		PORTB |= LATCH;
-		PORTB &= ~LATCH;
+	for (char stepper = 0; stepper < STEPPER_COUNT; stepper++) {
+		while (currentStepperCounts[stepper] != stepperTargets[stepper]) {
+			//clear shift register
+			PORTA &= ~SHIFT_CLEAR;		//write low
+			PORTA |= SHIFT_CLEAR; 		//write high
+			//Toggle latch to copy data to the storage register
+			PORTB |= LATCH;
+			PORTB &= ~LATCH;
 	
-		//send step signal
-		spi_send((unsigned char)0b00000000);
-		spi_send((unsigned char)0b00000000);
-		spi_send((unsigned char)0b00000001 | ((stepperCounts[0] > stepperTargets[0]) << 1) );
-		//Toggle latch to copy data to the storage register
-		PORTB |= LATCH;
-		PORTB &= ~LATCH;
+			spi_send(
+			((currentStepperCounts[11] > stepperTargets[11]) << 7) | ((currentStepperCounts[11] != stepperTargets[11]) << 6)
+			| ((currentStepperCounts[10] > stepperTargets[10]) << 5) | ((currentStepperCounts[10] != stepperTargets[10]) << 4)
+			| ((currentStepperCounts[9] > stepperTargets[9]) << 3) | ((currentStepperCounts[9] != stepperTargets[9]) << 2)
+			| ((currentStepperCounts[8] > stepperTargets[8]) << 1) | ((currentStepperCounts[8] != stepperTargets[8]) << 0));			
+			spi_send(
+			((currentStepperCounts[7] > stepperTargets[7]) << 7) | ((currentStepperCounts[7] != stepperTargets[7]) << 6)
+			| ((currentStepperCounts[6] > stepperTargets[6]) << 5) | ((currentStepperCounts[6] != stepperTargets[6]) << 4)
+			| ((currentStepperCounts[5] > stepperTargets[5]) << 3) | ((currentStepperCounts[5] != stepperTargets[5]) << 2)
+			| ((currentStepperCounts[4] > stepperTargets[4]) << 1) | ((currentStepperCounts[4] != stepperTargets[4]) << 0));
+			spi_send( 			
+			   ((currentStepperCounts[3] > stepperTargets[3]) << 7) | ((currentStepperCounts[3] != stepperTargets[3]) << 6)
+			 | ((currentStepperCounts[2] > stepperTargets[2]) << 5) | ((currentStepperCounts[2] != stepperTargets[2]) << 4)
+			 | ((currentStepperCounts[1] > stepperTargets[1]) << 3) | ((currentStepperCounts[1] != stepperTargets[1]) << 2)			
+			 | ((currentStepperCounts[0] > stepperTargets[0]) << 1) | ((currentStepperCounts[0] != stepperTargets[0]) << 0));
+			
+			
+			//Toggle latch to copy data to the storage register
+			PORTB |= LATCH;
+			PORTB &= ~LATCH;
 		
-		stepperCounts[0] += stepperCounts[0] < stepperTargets[0] ? 1 : -1;
+			for (unsigned int i = 0; i < STEPPER_COUNT; i++) { //todo: could probably  initialize to current stepper rather than 0
+				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
+			}
 		
-		_delay_ms(3);
+			_delay_ms(3); //todo: implement delay using timer
+		}
 	}
 }
 
-void set_step_target(unsigned int stepper, unsigned long target){
-	stepperTargets[stepper] = target;
+
+void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, unsigned long target) {
+	//find index of timestamp or create one if it doesn't exist in buffer
+	char timeFound = 0;
+	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
+		if (instructionBuffer[i][0] == timeStamp) {
+			instructionBuffer[i][stepper+1] = target;
+			timeFound = 1;
+			break;
+		}
+	}
+	if (!timeFound) {
+		for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
+			if (instructionBuffer[i][0] == 0) {
+				instructionBuffer[i][0] = timeStamp;
+				instructionBuffer[i][stepper+1] = target;
+				break;
+			}
+		}
+	}
 }

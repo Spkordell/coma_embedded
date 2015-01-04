@@ -19,12 +19,12 @@
 #define STEPPER_ENABLE (1<<PA5)
 
 #define STEPPER_COUNT 12
-
+#define INSTRUCTION_BUFFER_SIZE 128
 
 void init_steppers(void);
 void init_SPI(void);
 void spi_send(unsigned char byte);
-void send_step(void);
-void set_step_target(unsigned int stepper, unsigned long target);
+void send_step_instruction(char instruction);
+void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, unsigned long target);
 
 #endif /* STEPPER_H_ */

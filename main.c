@@ -18,28 +18,53 @@ int main(void) {
 		/*
 		if (uart_char_waiting()) {
 			uart_putchar(uart_getchar());
-			send_step();
+			send_step_instruction();
 		}*/
 		parseInput();
-		send_step();
+		//send_step_instruction();
     }
 }
 
-void parseInput(void) {
+void parseInput(void) {	
+	//Format: timestamp:stepper number(0..11):target count\r	
 	char buffer[30];
 	char* p = buffer;
+	long timeStamp = 0;
+	char stepper = 0;
+	long target = 0;
+	char at = 0;
+	
+	//extract the timestamp, stepper, and target
 	while (1) {
 		if(uart_char_waiting()) {
 			*p = uart_getchar();
 			uart_putchar(*p);
-			if (*p == '\r') {
+			if (*p == ':' || *p == '\r') {
 				*p = '\0';
-				break;
+				switch (at) {
+					case 0:
+						timeStamp = atol(buffer);
+						p = buffer;
+						break;
+					case 1:
+						stepper = atoi(buffer);
+						p = buffer;
+						break;
+					case 2:
+						target = atol(buffer);
+						break;			
+				}
+				if (at == 2) {
+					break;
+				} else {
+					at++;
+				}
+			} else {
+				p++;
 			}
-			p++;
 		}
-	}
-	set_step_target(0,atoi(buffer));
+	}	
+	add_stepper_instruction(timeStamp, stepper, target);
 }
 
 
