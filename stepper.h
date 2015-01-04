@@ -24,7 +24,7 @@
 void init_steppers(void);
 void init_SPI(void);
 void spi_send(unsigned char byte);
-void send_step_instruction(char instruction);
+void send_step_instruction(int instruction);
 void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, unsigned long target);
 
 #endif /* STEPPER_H_ */
