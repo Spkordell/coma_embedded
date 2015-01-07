@@ -11,14 +11,13 @@ int main(void) {
 	cli();
 	init_steppers();
 	init_uart();
-	//InitTimer(1, NORMAL, 0);
-	sei();
-	
-    while(1) {
-		/*
+	InitTimer(1, CTC, 18432); //should interrupt every 1 ms // alternatively, could use timer 0 with prescaler = 256 and max count = 74
+	sei();	
+    while(1) {	
+		/*		
 		if (uart_char_waiting()) {
 			uart_putchar(uart_getchar());
-			send_step_instruction();
+			//send_step_instruction();
 		}*/
 		parseInput();
 		//send_step_instruction();
@@ -68,6 +67,10 @@ void parseInput(void) {
 }
 
 
+ISR(TIMER1_COMPA_vect) {
+	//getting called every millisecond
+}
+
 /*
 unsigned long count = 0;
 ISR(TIMER1_OVF_vect) {
@@ -78,8 +81,7 @@ ISR(TIMER1_OVF_vect) {
 	uart_putchar('\n');
 }*/
 
-/*
-ISR(TIMER2_COMPA_vect) {
-}
-*/
+
+
+
 

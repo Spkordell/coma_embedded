@@ -21,8 +21,8 @@ char fifo_put(FIFO* which_fifo, char data) {
 
 // get data from the FIFO
 // returns 1 on success, 0 if FIFO was empty
-char fifo_get(FIFO* which_fifo, char* data)
-{
+char fifo_get(FIFO* which_fifo, char* data) {
+
 	if (which_fifo->head != which_fifo->tail) {	// if the FIFO is not empty
 		*data = which_fifo->fifo[which_fifo->head];	// read data from the FIFO
 		if(which_fifo->head+1 >= which_fifo->size) {

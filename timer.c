@@ -12,13 +12,13 @@
  * Initializes any timer (0,1, or 2) in either NORMAL or CTC mode. In NORMAL mode the third comp parameter has no effect, in CTC mode the comp parameter sets the comparison A value.
  * No clock prescaling is used.
  */
+
 void InitTimer(unsigned char number, TimerMode mode, unsigned short int comp) {
-	//disable global interrupts while we set up the timer
 	switch(number) {
 	case 0:
 		//Initialize timer to 0
 		TCNT0 = 0;
-		//disable prescaler
+		//disable prescaler	
 		TCCR0B &= ~((1<<2)|(1<<1));
 		TCCR0B |= (1<<0);
 		//enable Timer overflow interrupt:
@@ -31,7 +31,7 @@ void InitTimer(unsigned char number, TimerMode mode, unsigned short int comp) {
 		TCNT1 = 0;
 		//disable prescaler
 		TCCR1B &= ~((1<<2)|(1<<1));
-		TCCR1B |= (1<<0);		
+		TCCR1B |= (1<<0);
 		//enable Timer overflow interrupt:
 		TIMSK1 |= (1<<0);
 		//Enable Timer interrupt flag
