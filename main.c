@@ -7,11 +7,13 @@
 
 #include "main.h"
 
+volatile long millis = 0; //number of milliseconds which have passed
+
 int main(void) {	
 	cli();
 	init_steppers();
 	init_uart();
-	InitTimer(1, CTC, 18432); //should interrupt every 1 ms // alternatively, could use timer 0 with prescaler = 256 and max count = 74
+	InitTimer(1, CTC, 18432); //interrupt every 1 ms (clock speed is 18432000) // alternatively, could use timer 0 with prescaler = 256 and max count = 74
 	sei();	
     while(1) {	
 		/*		
@@ -24,7 +26,10 @@ int main(void) {
     }
 }
 
-void parseInput(void) {	
+void parseInput(void) {
+	
+	//todo: add commands for homing and syncing timer
+	
 	//Format: timestamp:stepper number(0..11):target count\r	
 	char buffer[30];
 	char* p = buffer;
@@ -32,12 +37,28 @@ void parseInput(void) {
 	char stepper = 0;
 	long target = 0;
 	char at = 0;
+	char instuctionToAdd = 1;
 	
 	//extract the timestamp, stepper, and target
 	while (1) {
 		if(uart_char_waiting()) {
 			*p = uart_getchar();
 			uart_putchar(*p);
+			
+			if (*p == 'R') {		
+				cli();
+				millis = 0; //reset millis count
+				TCNT1 = 0;  //set timer value to 0
+				sei();
+				instuctionToAdd = 0;
+				break;
+			}
+			if (*p == 'H') {
+				//todo: perform homing routine
+				instuctionToAdd = 0;
+				break;
+			}
+			
 			if (*p == ':' || *p == '\r') {
 				*p = '\0';
 				switch (at) {
@@ -62,26 +83,19 @@ void parseInput(void) {
 				p++;
 			}
 		}
-	}	
-	add_stepper_instruction(timeStamp, stepper, target);
+	}
+	if (instuctionToAdd) {
+		add_stepper_instruction(timeStamp, stepper, target);
+	}
 }
-
 
 ISR(TIMER1_COMPA_vect) {
-	//getting called every millisecond
+	//called every millisecond
+	long nextInstructionTimestamp = getNextInstructionTimestamp();
+	if (++millis >= nextInstructionTimestamp && nextInstructionTimestamp != 0) {
+		send_step_instruction(nextInstructionTimestamp);
+	}
+	char asciiMillis[30];
+	ltoa(millis, asciiMillis, 10);
+	uart_put_string(asciiMillis);
 }
-
-/*
-unsigned long count = 0;
-ISR(TIMER1_OVF_vect) {
-	count++;
-	char buffer[10];
-	itoa(count,buffer,10);
-	uart_put_string(buffer);
-	uart_putchar('\n');
-}*/
-
-
-
-
-

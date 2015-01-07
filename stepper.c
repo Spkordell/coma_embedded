@@ -104,6 +104,9 @@ void send_step_instruction(int instruction) {
 
 void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, unsigned long target) {
 	//find index of timestamp or create one if it doesn't exist in buffer
+	
+	//todo: handle buffer full condition (can probably just repeat everything and wait until an empty slot is found)
+	
 	char timeFound = 0;
 	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
 		if (instructionBuffer[i][0] == timeStamp) {
@@ -121,4 +124,17 @@ void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, uns
 			}
 		}
 	}
+}
+
+long getNextInstructionTimestamp() {
+	long nextInstructionTimeStamp = LONG_MAX;
+	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
+		if (instructionBuffer[i][0] < nextInstructionTimeStamp) {
+			nextInstructionTimeStamp = instructionBuffer[i][0];
+		}
+	}
+	if (nextInstructionTimeStamp == LONG_MAX) {
+		return 0; //signifies that the instruction buffer is empty
+	}
+	return nextInstructionTimeStamp;
 }

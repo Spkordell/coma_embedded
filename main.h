@@ -15,6 +15,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "Stepper.h"
 #include "FIFO.h"
