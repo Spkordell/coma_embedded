@@ -86,16 +86,47 @@ void parseInput(void) {
 	}
 	if (instuctionToAdd) {
 		add_stepper_instruction(timeStamp, stepper, target);
+		char buff1[30];
+		char buff2[30];
+		char buff3[30];
+		ltoa(timeStamp,buff1,10);
+		ltoa(stepper,buff2,10);
+		ltoa(target,buff3,10);
+		uart_put_string(buff1);
+		uart_putchar('\r');
+		uart_put_string(buff2);
+		uart_putchar('\r');
+		uart_put_string(buff3);
+		uart_putchar('\r');
 	}
 }
 
 ISR(TIMER1_COMPA_vect) {
-	//called every millisecond
-	long nextInstructionTimestamp = getNextInstructionTimestamp();
-	if (++millis >= nextInstructionTimestamp && nextInstructionTimestamp != 0) {
-		send_step_instruction(nextInstructionTimestamp);
+	//called every millisecond	
+	//cli(); //temporary, for testing, todo
+	
+	
+
+	unsigned int instructionIndex;
+	long nextInstructionTimestamp = getNextInstructionTimestamp(&instructionIndex);
+	
+
+	if (++millis >= nextInstructionTimestamp && nextInstructionTimestamp != 0) {		
+		send_step_instruction(instructionIndex);  //todo: this can take a long time, probably want to make a pending instruction buffer.
+		uart_put_string("Sent instruction\r");
+		/*
+		char buff[30];
+		ltoa(nextInstructionTimestamp,buff,10);
+		uart_put_string(buff);
+		uart_putchar('\r');
+		*/
 	}
-	char asciiMillis[30];
-	ltoa(millis, asciiMillis, 10);
-	uart_put_string(asciiMillis);
+	//char asciiMillis[30];
+	//ltoa(millis, asciiMillis, 10);
+	//uart_put_string(asciiMillis);
+	//uart_putchar('\r');
+	
+	//_delay_us(500);
+	
+	//sei(); //temporary, for testing, todo
 }

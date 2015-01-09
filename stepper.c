@@ -57,6 +57,11 @@ void send_step_instruction(int instruction) {
 		}
 	}
 	
+	//remove instruction from buffer
+	for (unsigned int i = 0; i < STEPPER_COUNT+1; i++) {
+		instructionBuffer[instruction][i] = 0;
+	}
+	
 	for (unsigned int stepper = 0; stepper < STEPPER_COUNT; stepper++) {
 		while (currentStepperCounts[stepper] != stepperTargets[stepper]) {
 			//clear shift register
@@ -126,11 +131,12 @@ void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, uns
 	}
 }
 
-long getNextInstructionTimestamp() {
+long getNextInstructionTimestamp(unsigned int* instructionIndex) {
 	long nextInstructionTimeStamp = LONG_MAX;
 	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
-		if (instructionBuffer[i][0] < nextInstructionTimeStamp) {
+		if (instructionBuffer[i][0] != 0 && instructionBuffer[i][0] < nextInstructionTimeStamp) {
 			nextInstructionTimeStamp = instructionBuffer[i][0];
+			*instructionIndex = i;
 		}
 	}
 	if (nextInstructionTimeStamp == LONG_MAX) {
