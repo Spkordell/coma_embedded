@@ -48,7 +48,7 @@ void spi_send(unsigned char byte){
 void send_step_instruction(int instruction) {
 	unsigned char spi_buffer;
 	
-	long stepperTargets[STEPPER_COUNT];
+	unsigned long stepperTargets[STEPPER_COUNT];
 	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
 		if (instructionBuffer[instruction][i+1] != 0) {
 			stepperTargets[i] = instructionBuffer[instruction][i+1];
@@ -100,6 +100,55 @@ void send_step_instruction(int instruction) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 		
+			_delay_ms(3); //todo: implement delay using timer
+			
+		}
+	}
+}
+
+//todo: lots of common code between sent_teleop_step and send_step_instruction. Can simplify
+
+void send_teleop_step(unsigned long* stepperTargets) {
+	unsigned char spi_buffer;	
+		
+	for (unsigned int stepper = 0; stepper < STEPPER_COUNT; stepper++) {
+		while (currentStepperCounts[stepper] != stepperTargets[stepper]) {
+			//clear shift register
+			PORTA &= ~SHIFT_CLEAR;		//write low
+			PORTA |= SHIFT_CLEAR; 		//write high
+			//Toggle latch to copy data to the storage register
+			PORTB |= LATCH;
+			PORTB &= ~LATCH;
+			
+			SPDR = ((unsigned char) /*compute and transmit first instruction */
+			((currentStepperCounts[11] > stepperTargets[11]) << 7) | ((currentStepperCounts[11] != stepperTargets[11]) << 6)
+			| ((currentStepperCounts[10] > stepperTargets[10]) << 5) | ((currentStepperCounts[10] != stepperTargets[10]) << 4)
+			| ((currentStepperCounts[9] > stepperTargets[9]) << 3) | ((currentStepperCounts[9] != stepperTargets[9]) << 2)
+			| ((currentStepperCounts[8] > stepperTargets[8]) << 1) | ((currentStepperCounts[8] != stepperTargets[8]) << 0));
+			spi_buffer = ((unsigned char) /*while waiting for first transfer to finish, computer second instruction*/
+			((currentStepperCounts[7] > stepperTargets[7]) << 7) | ((currentStepperCounts[7] != stepperTargets[7]) << 6)
+			| ((currentStepperCounts[6] > stepperTargets[6]) << 5) | ((currentStepperCounts[6] != stepperTargets[6]) << 4)
+			| ((currentStepperCounts[5] > stepperTargets[5]) << 3) | ((currentStepperCounts[5] != stepperTargets[5]) << 2)
+			| ((currentStepperCounts[4] > stepperTargets[4]) << 1) | ((currentStepperCounts[4] != stepperTargets[4]) << 0));
+			while(!(SPSR & (1<<SPIF)));  //Wait for first SPI transfer to finish
+			SPDR = spi_buffer; /*send second instruction*/
+			spi_buffer = ((unsigned char) /*while waiting for second transfer to finish, computer third instruction*/
+			((currentStepperCounts[3] > stepperTargets[3]) << 7) | ((currentStepperCounts[3] != stepperTargets[3]) << 6)
+			| ((currentStepperCounts[2] > stepperTargets[2]) << 5) | ((currentStepperCounts[2] != stepperTargets[2]) << 4)
+			| ((currentStepperCounts[1] > stepperTargets[1]) << 3) | ((currentStepperCounts[1] != stepperTargets[1]) << 2)
+			| ((currentStepperCounts[0] > stepperTargets[0]) << 1) | ((currentStepperCounts[0] != stepperTargets[0]) << 0));
+			while(!(SPSR & (1<<SPIF))); //Wait for second SPI transfer to finish
+			SPDR = spi_buffer; //send third instruction
+			while(!(SPSR & (1<<SPIF))); //Wait for third SPI transfer to finish
+			
+			//Toggle latch to copy data to the storage register
+			PORTB |= LATCH;
+			PORTB &= ~LATCH;
+			
+			for (unsigned int i = stepper; i < STEPPER_COUNT; i++) {
+				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
+			}
+			
 			_delay_ms(3); //todo: implement delay using timer
 			
 		}
