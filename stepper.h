@@ -17,16 +17,20 @@
 #define STEPPER_RESET (1<<PA3)
 #define STEPPER_SLEEP (1<<PA4)
 #define STEPPER_ENABLE (1<<PA5)
+#define STEPPER_FAULT (1<<PD2)
 
 #define STEPPER_COUNT 12
-#define INSTRUCTION_BUFFER_SIZE 128
+#define PATH_INSTRUCTION_BUFFER_SIZE 64
+#define TELEOP_INSTRUCTION_BUFFER_SIZE 64
 
 void init_steppers(void);
 void init_SPI(void);
 void spi_send(unsigned char byte);
+char is_fault();
 void send_step_instruction(int instruction);
 void send_teleop_step(unsigned long* stepperTargets);
 void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, unsigned long target);
 long getNextInstructionTimestamp(unsigned int* instructionIndex);
+void buffer_teleop_instruction(unsigned long* instruction);
 
 #endif /* STEPPER_H_ */

@@ -8,10 +8,11 @@
 #include "main.h"
 
 unsigned long currentStepperCounts[STEPPER_COUNT];
-volatile unsigned long instructionBuffer[INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT+1]; //instructionBuffer[n][0] = timestamp, instructionBuffer[n][1..12] = targer stepper count
+volatile unsigned long pathInstructionBuffer[PATH_INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT+1]; //instructionBuffer[n][0] = timestamp, instructionBuffer[n][1..12] = targer stepper count
+unsigned long teleopInstructionBuffer[TELEOP_INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT];
+unsigned long* teleopInstructionBufferPtr[TELEOP_INSTRUCTION_BUFFER_SIZE];
 
-
-//TODO: handle fault conditions
+MULTI_DIM_FIFO teleopInstructionFifo;
 
 
 void init_steppers(void) {
@@ -22,17 +23,24 @@ void init_steppers(void) {
 	PORTA |= (STEPPER_RESET | STEPPER_SLEEP | SHIFT_CLEAR); 								//set pins high
 	PORTA &= ~(STEPPER_ENABLE | SHIFT_ENABLE);												//set pins low
 	
+	DDRD &= ~(STEPPER_FAULT); //set fault pin as input
+	
 	init_SPI();
 	
-	//initialize stepper counts and instruction buffer to 0
+	//initialize stepper counts and path instruction buffer to 0
 	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
 		currentStepperCounts[i] = 0;
 	}
-	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
+	for (unsigned int i = 0; i < PATH_INSTRUCTION_BUFFER_SIZE; i++) {
 		for (unsigned int j = 0; j < STEPPER_COUNT+1; j++) {
-			instructionBuffer[i][j] = 0;
+			pathInstructionBuffer[i][j] = 0;
 		}
 	}
+		
+	teleopInstructionFifo.head = 0;
+	teleopInstructionFifo.tail = 0;
+	teleopInstructionFifo.size = TELEOP_INSTRUCTION_BUFFER_SIZE;
+	teleopInstructionFifo.fifo = teleopInstructionBufferPtr;	
 }
 
 void init_SPI(void){
@@ -45,13 +53,33 @@ void spi_send(unsigned char byte){
 	while(!(SPSR & (1<<SPIF))); //Wait for SPI process to finish
 }
 
+char is_fault() {
+	if (PORTD & STEPPER_FAULT) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+void buffer_teleop_instruction(unsigned long* instruction) {
+	static int index = 0;
+	for(unsigned int i = 0; i < STEPPER_COUNT; i++) {
+		teleopInstructionBuffer[index][i] = instruction[i];
+	}
+	multi_dim_fifo_put(&teleopInstructionFifo, teleopInstructionBuffer[index]);
+	index++;
+	if (index >= TELEOP_INSTRUCTION_BUFFER_SIZE) {
+		index = 0;
+	}
+}
+
 void send_step_instruction(int instruction) {
 	unsigned char spi_buffer;
 	
 	unsigned long stepperTargets[STEPPER_COUNT];
 	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
-		if (instructionBuffer[instruction][i+1] != 0) {
-			stepperTargets[i] = instructionBuffer[instruction][i+1];
+		if (pathInstructionBuffer[instruction][i+1] != 0) {
+			stepperTargets[i] = pathInstructionBuffer[instruction][i+1];
 		} else {
 			stepperTargets[i] = currentStepperCounts[i];
 		}
@@ -59,7 +87,7 @@ void send_step_instruction(int instruction) {
 	
 	//remove instruction from buffer
 	for (unsigned int i = 0; i < STEPPER_COUNT+1; i++) {
-		instructionBuffer[instruction][i] = 0;
+		pathInstructionBuffer[instruction][i] = 0;
 	}
 	
 	for (unsigned int stepper = 0; stepper < STEPPER_COUNT; stepper++) {
@@ -162,18 +190,18 @@ void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, uns
 	//todo: handle buffer full condition (can probably just repeat everything and wait until an empty slot is found)
 	
 	char timeFound = 0;
-	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
-		if (instructionBuffer[i][0] == timeStamp) {
-			instructionBuffer[i][stepper+1] = target;
+	for (unsigned int i = 0; i < PATH_INSTRUCTION_BUFFER_SIZE; i++) {
+		if (pathInstructionBuffer[i][0] == timeStamp) {
+			pathInstructionBuffer[i][stepper+1] = target;
 			timeFound = 1;
 			break;
 		}
 	}
 	if (!timeFound) {
-		for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
-			if (instructionBuffer[i][0] == 0) {
-				instructionBuffer[i][0] = timeStamp;
-				instructionBuffer[i][stepper+1] = target;
+		for (unsigned int i = 0; i < PATH_INSTRUCTION_BUFFER_SIZE; i++) {
+			if (pathInstructionBuffer[i][0] == 0) {
+				pathInstructionBuffer[i][0] = timeStamp;
+				pathInstructionBuffer[i][stepper+1] = target;
 				break;
 			}
 		}
@@ -182,9 +210,9 @@ void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, uns
 
 long getNextInstructionTimestamp(unsigned int* instructionIndex) {
 	long nextInstructionTimeStamp = LONG_MAX;
-	for (unsigned int i = 0; i < INSTRUCTION_BUFFER_SIZE; i++) {
-		if (instructionBuffer[i][0] != 0 && instructionBuffer[i][0] < nextInstructionTimeStamp) {
-			nextInstructionTimeStamp = instructionBuffer[i][0];
+	for (unsigned int i = 0; i < PATH_INSTRUCTION_BUFFER_SIZE; i++) {
+		if (pathInstructionBuffer[i][0] != 0 && pathInstructionBuffer[i][0] < nextInstructionTimeStamp) {
+			nextInstructionTimeStamp = pathInstructionBuffer[i][0];
 			*instructionIndex = i;
 		}
 	}

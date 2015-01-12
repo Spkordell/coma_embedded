@@ -28,7 +28,7 @@ int main(void) {
 		sei();
 	}
 	
-    while(1) {	
+    while(1) {
 		parseInput();
     }
 }
@@ -46,6 +46,11 @@ void parseInput(void) {
 	
 	//extract the timestamp, stepper, and target
 	while (1) {
+		while (is_fault()) {
+			//could also do this using external GPIO interrupt INT0 instead of polling
+			uart_putchar('F');
+			_delay_us(2);
+		}
 		if(uart_char_waiting()) {
 			*p = uart_getchar();
 			
@@ -76,8 +81,7 @@ void parseInput(void) {
 				mode = PATH;
 				break;
 			}
-			
-			
+						
 			if (mode == TELEOP) {
 				instuctionToAdd = 0;
 				if (*p == ':' || *p == ';' || *p == '\r') {
@@ -87,7 +91,8 @@ void parseInput(void) {
 					p = buffer;
 					if (at >= 12) {
 						at = 0;
-						send_teleop_step(teleop_instruction);
+						//send_teleop_step(teleop_instruction);
+						buffer_teleop_instruction(teleop_instruction);
 						uart_putchar('R'); //signal that we are ready for the next command				
 					}
 				} else {
