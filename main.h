@@ -26,7 +26,7 @@
 
 #include <util/setbaud.h>
 
-#define UART_ECHO
+//#define UART_ECHO
 
 typedef enum {TELEOP, PATH} mode_t;
 

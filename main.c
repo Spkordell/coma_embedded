@@ -17,7 +17,7 @@ int main(void) {
 	sei();	
 	
 	//get mode selection from host computer
-	uart_putchar('I');				//send initialization complete signal to host computer
+	uart_putchar('R');				//send ready signal to host computer
 	while(!uart_char_waiting());    //wait for mode selection
 	if (uart_getchar() == 'T') {
 		mode = TELEOP;
@@ -66,6 +66,17 @@ void parseInput(void) {
 				instuctionToAdd = 0;
 				break;
 			}
+			if (*p == 'T') {
+				instuctionToAdd = 0;
+				mode = TELEOP;
+				break;
+			}
+			if (*p == 'P') {
+				instuctionToAdd = 0;
+				mode = PATH;
+				break;
+			}
+			
 			
 			if (mode == TELEOP) {
 				instuctionToAdd = 0;
@@ -77,6 +88,7 @@ void parseInput(void) {
 					if (at >= 12) {
 						at = 0;
 						send_teleop_step(teleop_instruction);
+						uart_putchar('R'); //signal that we are ready for the next command				
 					}
 				} else {
 					p++;
