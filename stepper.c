@@ -9,10 +9,9 @@
 
 unsigned long currentStepperCounts[STEPPER_COUNT];
 volatile unsigned long pathInstructionBuffer[PATH_INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT+1]; //instructionBuffer[n][0] = timestamp, instructionBuffer[n][1..12] = targer stepper count
-unsigned long teleopInstructionBuffer[TELEOP_INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT];
-unsigned long* teleopInstructionBufferPtr[TELEOP_INSTRUCTION_BUFFER_SIZE];
-
-MULTI_DIM_FIFO teleopInstructionFifo;
+//unsigned long teleopInstructionBuffer[TELEOP_INSTRUCTION_BUFFER_SIZE][STEPPER_COUNT];
+//unsigned long* teleopInstructionBufferPtr[TELEOP_INSTRUCTION_BUFFER_SIZE];
+//MULTI_DIM_FIFO teleopInstructionFifo;
 
 
 void init_steppers(void) {
@@ -36,11 +35,12 @@ void init_steppers(void) {
 			pathInstructionBuffer[i][j] = 0;
 		}
 	}
-		
+	/*
 	teleopInstructionFifo.head = 0;
 	teleopInstructionFifo.tail = 0;
 	teleopInstructionFifo.size = TELEOP_INSTRUCTION_BUFFER_SIZE;
 	teleopInstructionFifo.fifo = teleopInstructionBufferPtr;	
+	*/
 }
 
 void init_SPI(void){
@@ -54,13 +54,10 @@ void spi_send(unsigned char byte){
 }
 
 char is_fault() {
-	if (PORTD & STEPPER_FAULT) {
-		return 0;
-	} else {
-		return 1;
-	}
+	return (~PIND & STEPPER_FAULT);
 }
 
+/*
 void buffer_teleop_instruction(unsigned long* instruction) {
 	static int index = 0;
 	for(unsigned int i = 0; i < STEPPER_COUNT; i++) {
@@ -71,7 +68,7 @@ void buffer_teleop_instruction(unsigned long* instruction) {
 	if (index >= TELEOP_INSTRUCTION_BUFFER_SIZE) {
 		index = 0;
 	}
-}
+}*/
 
 void send_step_instruction(int instruction) {
 	unsigned char spi_buffer;

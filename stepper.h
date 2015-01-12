@@ -31,6 +31,6 @@ void send_step_instruction(int instruction);
 void send_teleop_step(unsigned long* stepperTargets);
 void add_stepper_instruction(unsigned long timeStamp, unsigned char stepper, unsigned long target);
 long getNextInstructionTimestamp(unsigned int* instructionIndex);
-void buffer_teleop_instruction(unsigned long* instruction);
+//void buffer_teleop_instruction(unsigned long* instruction);
 
 #endif /* STEPPER_H_ */

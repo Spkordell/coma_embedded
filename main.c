@@ -91,9 +91,8 @@ void parseInput(void) {
 					p = buffer;
 					if (at >= 12) {
 						at = 0;
-						//send_teleop_step(teleop_instruction);
-						buffer_teleop_instruction(teleop_instruction);
-						uart_putchar('R'); //signal that we are ready for the next command				
+						uart_putchar('R'); //signal that we are ready for the next command	
+						send_teleop_step(teleop_instruction);	
 					}
 				} else {
 					p++;
