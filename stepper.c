@@ -14,6 +14,16 @@ volatile unsigned long pathInstructionBuffer[PATH_INSTRUCTION_BUFFER_SIZE][STEPP
 //MULTI_DIM_FIFO teleopInstructionFifo;
 
 
+void init_endstops(void) {	
+	//Set end stops as inputs		
+	DDRC &= ~(ENDSTOP0 | ENDSTOP1 | ENDSTOP2 | ENDSTOP3 | ENDSTOP4 | ENDSTOP5 | ENDSTOP6 | ENDSTOP7);
+	DDRD &= ~(ENDSTOP8 | ENDSTOP9 | ENDSTOP10 | ENDSTOP11);
+		
+	//enable pull up resistor
+	PORTC |= (ENDSTOP0 | ENDSTOP1 | ENDSTOP2 | ENDSTOP3 | ENDSTOP4 | ENDSTOP5 | ENDSTOP6 | ENDSTOP7);
+	PORTD |= (ENDSTOP8 | ENDSTOP9 | ENDSTOP10 | ENDSTOP11);	
+}
+
 void init_steppers(void) {
 	DDRB |= (DATA | LATCH | CLOCK);		//Set shift control pins as outputs
 	PORTB &= ~(DATA | LATCH | CLOCK);	//Set shift control pins low
@@ -41,6 +51,26 @@ void init_steppers(void) {
 	teleopInstructionFifo.size = TELEOP_INSTRUCTION_BUFFER_SIZE;
 	teleopInstructionFifo.fifo = teleopInstructionBufferPtr;	
 	*/
+}
+
+
+void home_steppers(void) {
+	
+	//todo: perform homing routine
+	
+	while ((PINC & ENDSTOP6) | (PINC & ENDSTOP7) | (PIND & ENDSTOP8) | (PIND & ENDSTOP9) | (PIND & ENDSTOP10) | (PIND & ENDSTOP11)) { //while none of bottom link endstops are pressed
+		
+	}
+	
+	
+	while ((PINC & ENDSTOP0) | (PINC & ENDSTOP1) | (PINC & ENDSTOP2) | (PINC & ENDSTOP3) | (PINC & ENDSTOP4) | (PINC & ENDSTOP5)) { //while none of top link endstops are pressed
+		
+	}
+	
+	//set counts to 0
+	for (unsigned int i = 0; i < STEPPER_COUNT; i++) {
+		currentStepperCounts[i] = 0;
+	}
 }
 
 void init_SPI(void){

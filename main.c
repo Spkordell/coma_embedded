@@ -12,6 +12,7 @@ volatile long millis = 0; //number of milliseconds which have passed
 
 int main(void) {	
 	cli();
+	init_endstops();
 	init_steppers();
 	init_uart();
 	sei();	
@@ -67,7 +68,7 @@ void parseInput(void) {
 				break;
 			}
 			if (*p == 'H') {
-				//todo: perform homing routine
+				home_steppers();
 				instuctionToAdd = 0;
 				break;
 			}

@@ -19,11 +19,26 @@
 #define STEPPER_ENABLE (1<<PA5)
 #define STEPPER_FAULT (1<<PD2)
 
+#define ENDSTOP0 (1 << PC0)
+#define ENDSTOP1 (1 << PC1)
+#define ENDSTOP2 (1 << PC2)
+#define ENDSTOP3 (1 << PC3)
+#define ENDSTOP4 (1 << PC4)
+#define ENDSTOP5 (1 << PC5)
+#define ENDSTOP6 (1 << PC6)
+#define ENDSTOP7 (1 << PC7)
+#define ENDSTOP8 (1 << PD3)
+#define ENDSTOP9 (1 << PD4)
+#define ENDSTOP10 (1 << PD5)
+#define ENDSTOP11 (1 << PD6)
+
 #define STEPPER_COUNT 12
 #define PATH_INSTRUCTION_BUFFER_SIZE 64
 #define TELEOP_INSTRUCTION_BUFFER_SIZE 64
 
+void init_endstops(void);
 void init_steppers(void);
+void home_steppers(void);
 void init_SPI(void);
 void spi_send(unsigned char byte);
 char is_fault();
