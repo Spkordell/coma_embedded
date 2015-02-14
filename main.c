@@ -14,6 +14,7 @@ int main(void) {
 	cli();
 	init_endstops();
 	init_steppers();
+	init_servos();
 	init_uart();
 	sei();	
 	
@@ -25,7 +26,7 @@ int main(void) {
 	} else {
 		mode = PATH;
 		cli();
-		InitTimer(1, CTC, 18432); //interrupt every 1 ms (clock speed is 18432000) // alternatively, could use timer 0 with prescaler = 256 and max count = 74
+		InitTimer(3, CTC, 18432); //interrupt every 1 ms (clock speed is 18432000) // alternatively, could use timer 0 with prescaler = 256 and max count = 74
 		sei();
 	}
 	
@@ -93,7 +94,7 @@ void parseInput(void) {
 					if (at >= 12) {
 						at = 0;
 						uart_putchar('R'); //signal that we are ready for the next command	
-						send_teleop_step(teleop_instruction);	
+						send_teleop_step(teleop_instruction);
 					}
 				} else {
 					p++;
@@ -144,7 +145,7 @@ void parseInput(void) {
 	}
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER3_COMPA_vect) {
 	//called every millisecond	
 	//cli(); //temporary, for testing, todo
 	

@@ -14,15 +14,18 @@
 #define PARSE_BUFFER_SIZE 30
 
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
-#include <stdlib.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <util/delay.h>
 
-#include "Stepper.h"
 #include "FIFO.h"
+#include "servo.h"
+#include "stepper.h"
+#include "timer.h"
 #include "UART.h"
-#include "Timer.h"
+
+
 
 #include <util/setbaud.h>
 

@@ -47,6 +47,17 @@ void InitTimer(unsigned char number, TimerMode mode, unsigned short int comp) {
 		TIMSK2 |= (1<<0);
 		//Enable Timer interrupt flag
 		TIFR2 |= (1<<0);	
+	break;
+		case 3:
+		//Initialize timer to 0
+		TCNT3 = 0;
+		//disable prescaler
+		TCCR3B &= ~((1<<2)|(1<<1));
+		TCCR3B |= (1<<0);
+		//enable Timer overflow interrupt:
+		TIMSK3 |= (1<<0);
+		//Enable Timer interrupt flag
+		TIFR3 |= (1<<0);
 		break;
 	}
 	if (mode == CTC) {
@@ -87,6 +98,18 @@ void InitTimer(unsigned char number, TimerMode mode, unsigned short int comp) {
 			TIMSK2 |= (1<<1);	
 			//Clear timer compare match flag
 			TIFR2 |= (1<<1);			
+			break;
+		case 3:
+			//Set mode to CTC
+			TCCR3A &= ~((1<<1)|(1<<0));
+			TCCR3B |= (1<<3);
+			TCCR3B &= ~(1<<4);
+			//Set comparison value
+			OCR3A = comp;
+			//Enable timer interrupts for CTC mode
+			TIMSK3 |= (1<<1);
+			//Clear timer compare match flag
+			TIFR3 |= (1<<1);
 			break;
 		}
 	}
