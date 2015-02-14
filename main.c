@@ -30,6 +30,10 @@ int main(void) {
 		sei();
 	}
 	
+	servo_test(WRIST_ROTATE_SERVO);
+	servo_test(WRIST_FLEX_SERVO);
+	servo_test(GRIPPER_SERVO);
+	
     while(1) {
 		parseInput();
     }
