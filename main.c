@@ -21,7 +21,7 @@ int main(void) {
 	//get mode selection from host computer
 	uart_putchar('R');				//send ready signal to host computer
 		
-	servo_test(WRIST_ROTATE_SERVO);
+	//servo_test(WRIST_ROTATE_SERVO);
 	//servo_test(WRIST_FLEX_SERVO);
 	//servo_test(GRIPPER_SERVO);
 	
