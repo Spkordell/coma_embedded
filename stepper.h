@@ -27,10 +27,10 @@
 #define ENDSTOP5 (1 << PC5)
 #define ENDSTOP6 (1 << PC6)
 #define ENDSTOP7 (1 << PC7)
-#define ENDSTOP8 (1 << PD3)
-#define ENDSTOP9 (1 << PD4)
-#define ENDSTOP10 (1 << PD5)
-#define ENDSTOP11 (1 << PD6)
+#define ENDSTOP8 (1 << PA0)
+#define ENDSTOP9 (1 << PA1)
+#define ENDSTOP10 (1 << PA2)
+#define ENDSTOP11 (1 << PB0)
 
 #define STEPPER_COUNT 12
 #define PATH_INSTRUCTION_BUFFER_SIZE 64

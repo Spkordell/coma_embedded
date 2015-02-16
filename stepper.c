@@ -17,11 +17,13 @@ volatile unsigned long pathInstructionBuffer[PATH_INSTRUCTION_BUFFER_SIZE][STEPP
 void init_endstops(void) {	
 	//Set end stops as inputs		
 	DDRC &= ~(ENDSTOP0 | ENDSTOP1 | ENDSTOP2 | ENDSTOP3 | ENDSTOP4 | ENDSTOP5 | ENDSTOP6 | ENDSTOP7);
-	DDRD &= ~(ENDSTOP8 | ENDSTOP9 | ENDSTOP10 | ENDSTOP11);
+	DDRA &= ~(ENDSTOP8 | ENDSTOP9 | ENDSTOP10);
+	DDRB &= ~(ENDSTOP11);
 		
 	//enable pull up resistor
 	PORTC |= (ENDSTOP0 | ENDSTOP1 | ENDSTOP2 | ENDSTOP3 | ENDSTOP4 | ENDSTOP5 | ENDSTOP6 | ENDSTOP7);
-	PORTD |= (ENDSTOP8 | ENDSTOP9 | ENDSTOP10 | ENDSTOP11);	
+	PORTA |= (ENDSTOP8 | ENDSTOP9 | ENDSTOP10);
+	PORTB |= (ENDSTOP11);	
 }
 
 void init_steppers(void) {
@@ -58,7 +60,7 @@ void home_steppers(void) {
 	unsigned char spi_buffer;
 		
 	//home the bottom link
-	while ((PINC & ENDSTOP6) || (PINC & ENDSTOP7) || (PIND & ENDSTOP8) || (PIND & ENDSTOP9) || (PIND & ENDSTOP10) || (PIND & ENDSTOP11)) { //loop until all endstops are pressed (endstops are active low)
+	while ((PINC & ENDSTOP6) || (PINC & ENDSTOP7) || (PINA & ENDSTOP8) || (PINA & ENDSTOP9) || (PINA & ENDSTOP10) || (PINB & ENDSTOP11)) { //loop until all endstops are pressed (endstops are active low)
 		//clear shift register
 		PORTA &= ~SHIFT_CLEAR;		//write low
 		PORTA |= SHIFT_CLEAR; 		//write high
@@ -67,10 +69,10 @@ void home_steppers(void) {
 		PORTB &= ~LATCH;
 					
 		SPDR = ((unsigned char) /*compute and transmit first instruction */
-		((1 << 7) | ((PIND & ENDSTOP11) ? 1 << 6 : 0)
-		| (1 << 5) | ((PIND & ENDSTOP10) ? 1 << 4 : 0)
-		| (1 << 3) | ((PIND & ENDSTOP9) ? 1 << 2 : 0)
-		| (1 << 1) | ((PIND & ENDSTOP8) ? 1 << 0 : 0)));
+		((1 << 7) | ((PINB & ENDSTOP11) ? 1 << 6 : 0)
+		| (1 << 5) | ((PINA & ENDSTOP10) ? 1 << 4 : 0)
+		| (1 << 3) | ((PINA & ENDSTOP9) ? 1 << 2 : 0)
+		| (1 << 1) | ((PINA & ENDSTOP8) ? 1 << 0 : 0)));
 		spi_buffer = ((unsigned char) /*while waiting for first transfer to finish, compute second instruction*/
 		(1 << 7) | ((PINC & ENDSTOP7) ? 1 << 6 : 0)
 		| (1 << 5) | ((PINC & ENDSTOP6) ? 1 << 4 : 0));
