@@ -12,6 +12,11 @@ void init_servos() {
 	DDRB |= (GRIPPER_SERVO_PIN);
 	//set OC2A/B for rotation/flex servos to output
 	DDRD |= (WRIST_ROTATE_SERVO_PIN | WRIST_FLEX_SERVO_PIN);
+		
+	//Set end stops as inputs
+	DDRB &= ~(GRIPPER_ENDSTOP_OPEN_PIN | GRIPPER_ENDSTOP_CLOSE_PIN);
+	//enable endstop pull up resistors
+	PORTB |= (GRIPPER_ENDSTOP_OPEN_PIN | GRIPPER_ENDSTOP_CLOSE_PIN);
 	
 	//initialize timer 0 in phase-correct PWM mode for the gripper
 	//Initialize timer count to 0
@@ -92,19 +97,15 @@ void send_servo_instruction(unsigned long* servoTargets) {
 void gripper_open() {
 	restart_timer0();
 	set_servo(GRIPPER_SERVO,180);
-	
-	//todo: check limit switch and stop when hit instead of delay
-	_delay_ms(5000);
-
+	while (PINB & GRIPPER_ENDSTOP_OPEN_PIN) { //loop until open endstop is pressed (endstops are active low)
+	}
 	stop_timer0();
 }
 
 void gripper_close() {
 	restart_timer0();
 	set_servo(GRIPPER_SERVO,0);
-	
-	//todo: check limit switch and stop when hit instead of delay
-	_delay_ms(5000);
-	
+	while (PINB & GRIPPER_ENDSTOP_CLOSE_PIN) { //loop until close endstop is pressed (endstops are active low)
+	}	
 	stop_timer0();
 }
