@@ -21,12 +21,10 @@
 void init_servos();
 void set_servo(int servo, double angle);
 void servo_test(int servo);
+void send_servo_instruction(unsigned long* servoTargets);
 void stop_timer0();
 void restart_timer0();
 void gripper_open();
-void gripper_open();
-
-
-
+void gripper_close();
 
 #endif /* SERVO_H_ */

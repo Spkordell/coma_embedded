@@ -79,6 +79,16 @@ void servo_test(int servo) {
 	}
 }
 
+void send_servo_instruction(unsigned long* servoTargets) {
+	set_servo(WRIST_ROTATE_SERVO,servoTargets[0]);
+	set_servo(WRIST_FLEX_SERVO,servoTargets[1]);
+	if (servoTargets[2]) {
+		gripper_open();
+	} else {
+		gripper_close();
+	}
+}
+
 void gripper_open() {
 	restart_timer0();
 	set_servo(GRIPPER_SERVO,180);

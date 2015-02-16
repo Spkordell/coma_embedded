@@ -50,6 +50,7 @@ void parseInput(void) {
 	unsigned int at = 0;
 	char instuctionToAdd = 1;
 	unsigned long teleop_instruction[STEPPER_COUNT];
+	unsigned long servo_instruction[3]; //0: rotate, 1: flex, 2: gripper (1 = open, 0 = close)
 	
 	//extract the timestamp, stepper, and target
 	while (1) {
@@ -94,11 +95,17 @@ void parseInput(void) {
 				if (*p == ':' || *p == ';' || *p == '\r') {
 					*p = '\0';
 					target = atol(buffer);
-					teleop_instruction[at++] = target;
+					if (at < 12) {
+						teleop_instruction[at++] = target;
+					} else {
+						servo_instruction[at-12] = target;
+						at++;
+					}
 					p = buffer;
-					if (at >= 12) {
+					if (at >= 15) {
 						at = 0;
 						uart_putchar('R'); //signal that we are ready for the next command	
+						send_servo_instruction(servo_instruction);
 						send_teleop_step(teleop_instruction);
 					}
 				} else {
