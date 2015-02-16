@@ -17,9 +17,14 @@ int main(void) {
 	init_servos();
 	init_uart();
 	sei();	
-	
+		
 	//get mode selection from host computer
 	uart_putchar('R');				//send ready signal to host computer
+		
+	servo_test(WRIST_ROTATE_SERVO);
+	//servo_test(WRIST_FLEX_SERVO);
+	//servo_test(GRIPPER_SERVO);
+	
 	while(!uart_char_waiting());    //wait for mode selection
 	if (uart_getchar() == 'T') {
 		mode = TELEOP;
@@ -29,10 +34,6 @@ int main(void) {
 		InitTimer(3, CTC, 18432); //interrupt every 1 ms (clock speed is 18432000) // alternatively, could use timer 0 with prescaler = 256 and max count = 74
 		sei();
 	}
-	
-	servo_test(WRIST_ROTATE_SERVO);
-	servo_test(WRIST_FLEX_SERVO);
-	servo_test(GRIPPER_SERVO);
 	
     while(1) {
 		parseInput();

@@ -13,9 +13,6 @@ void init_servos() {
 	//set OC2A/B for rotation/flex servos to output
 	DDRD |= (WRIST_ROTATE_SERVO_PIN | WRIST_FLEX_SERVO_PIN);
 	
-	//todo: move timer configuration stuff into timer.c
-		
-	
 	//initialize timer 0 in phase-correct PWM mode for the gripper
 	//Initialize timer count to 0
 	TCNT0 = 0;
@@ -31,48 +28,54 @@ void init_servos() {
 	//initialize timer 2 in phase-correct PWM mode for the wrist rotation/flex
 	//initialize timer count to 0	
 	TCNT1 = 0;
-	//configure timer 1 for phase correct PWM mode, no prescaler
-	//TCCR1A = (1 << COM1A1) | (1 << COM1A0) | (1 << COM1B1) | (1 << COM1B0) | (1 << WGM11) | (1 << WGM10); //use OCR1A as top and inverting PWM output
-	TCCR1A = (1 << COM1A1) | (1 << COM1A0) | (1 << COM1B1) | (1 << COM1B0) | (1 << WGM11); //use ICR1 as top and inverting PWM output
-	TCCR1A = (1 << COM1A1) | (1 << COM1B1) | (1 << WGM11); //use ICR1 as top and non-inverting PWM output
-	TCCR1B = (1 << WGM13) | (1 << CS10);
+	//configure timer 1 for phase correct PWM mode, prescale = 8	
+	TCCR1A = (1 << COM1A1) | (1 << COM1B1) | (1 << WGM11); //use ICR1 as top and non-inverting PWM output		
+	TCCR1B = (1 << WGM13) | (1 << CS11); //phase-correct, prescale = 8
 	TCCR1C = 0;
-	//set top comparison value // period is 20.013 ms with a 18432000 hz clock and no prescaler
-	ICR1 = 921;
-	//set servos to 0 position by setting duty cycle to 5% (1 ms pulse) (max servo range occurs at 10% duty (2 ms pulse)
-//	OCR1A = 875; //(921 - (921*0.05)) 	
-//	OCR1B = 875; 
-	OCR0A = 46; //(ICR1*0.05)					
+	//set top comparison value // period is 20 ms with a 18432000 hz clock and prescale = clk/8
+	ICR1 = 23040; // ((0.02 * F)/8)/2 //division by 8 because of prescale, division by 2 because of phase correct mode (don't divide by 2 for fast mode)		
+	//set servos to 0 position by setting duty cycle to 5% (1 ms pulse) (max servo range occurs at 12.5% duty (2.5 ms pulse)
+	OCR1A = ICR1*0.05;
+	OCR1B = ICR1*0.05;
 
 }
 
 void set_servo(int servo, double angle){
 	static float T0TOP = 115.2;
+	cli();
 	switch (servo) {
 		case GRIPPER_SERVO:
 			OCR0A = (char)(T0TOP * (0.05*(angle/180)+0.05));
+			/*
+			char buff[40];
+			itoa(OCR0B,buff,10);
+			uart_put_string(buff);
+			uart_putchar('\n');
+			*/
 			break;
 		case WRIST_FLEX_SERVO:
-			OCR1A = (char)(ICR1 * (0.05*(angle/180)+0.05));
+			OCR1A = (uint16_t)(ICR1 * (0.075*(angle/180)+0.05));
 			break;
 		case WRIST_ROTATE_SERVO:
-			OCR1B = (char)(ICR1 * (0.05*(angle/180)+0.05));
+			OCR1B = (uint16_t)(ICR1 * (0.075*(angle/180)+0.05));
 			break;			
 	}
+	sei();
 }
 
 void servo_test(int servo) {
 	//todo: if gripper servo, need to start timer
 	
 	while(1) {
-		for (unsigned int i = 0; i < 180; i++) {
-			set_servo(servo, i);
-			_delay_ms(10);
-		}
+		uart_putchar('A');
 		for (unsigned int i = 180; i > 0; i--) {
 			set_servo(servo, i);
-			_delay_ms(10);
+			_delay_ms(50);
 		}
+		for (unsigned int i = 0; i < 180; i++) {
+			set_servo(servo, i);
+			_delay_ms(50);
+		}		
 	}
 }
 
@@ -84,8 +87,9 @@ void gripper_open() {
 	sei();
 	set_servo(GRIPPER_SERVO,180);
 	
-	//todo: check limit switch and stop when hit
-	
+	//todo: check limit switch and stop when hit instead of delay
+	_delay_ms(5000);
+
 	cli();
 	//stop the timer
 	TCCR0B &= ~(1 << CS01);	
@@ -99,7 +103,10 @@ void gripper_close() {
 	TCCR0B |= (1 << CS01); //prescaler = clk/8
 	sei();
 	set_servo(GRIPPER_SERVO,0);
-	//todo: check limit switch and stop when hit
+	
+	//todo: check limit switch and stop when hit instead of delay
+	_delay_ms(5000);
+	
 	cli();
 	//stop the timer
 	TCCR0B &= ~(1 << CS01);	
