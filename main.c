@@ -18,12 +18,18 @@ int main(void) {
 	init_uart();
 	sei();	
 		
+	//test_endstops();		
+	home_steppers();
+			
 	//get mode selection from host computer
 	uart_putchar('R');				//send ready signal to host computer
 		
 	//servo_test(WRIST_ROTATE_SERVO);
 	//servo_test(WRIST_FLEX_SERVO);
 	//servo_test(GRIPPER_SERVO);
+	
+
+	
 	
 	while(!uart_char_waiting());    //wait for mode selection
 	if (uart_getchar() == 'T') {

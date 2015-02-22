@@ -56,10 +56,69 @@ void init_steppers(void) {
 }
 
 
+void test_endstops(void) {
+	while(1) {
+		if(!(PINC & ENDSTOP0)) {
+			uart_putchar('3');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP1)) {
+			uart_putchar('4');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP2)) {
+			uart_putchar('7');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP3)) {
+			uart_putchar('8');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP4)) {
+			uart_putchar('1');
+			uart_putchar('1');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP5)) {
+			uart_putchar('1');
+			uart_putchar('2');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP6)) {
+			uart_putchar('1');
+			uart_putchar('\n');
+		}
+		if(!(PINC & ENDSTOP7)) {
+			uart_putchar('2');
+			uart_putchar('\n');
+		}
+		if(!(PINA & ENDSTOP8)) {
+			uart_putchar('5');
+			uart_putchar('\n');
+		}
+		if(!(PINA & ENDSTOP9)) {
+			uart_putchar('6');
+			uart_putchar('\n');
+		}
+		if(!(PINA & ENDSTOP10)) {
+			uart_putchar('9');			
+			uart_putchar('\n');
+		}
+		if(!(PINB & ENDSTOP11)) {
+			uart_putchar('1');
+			uart_putchar('0');
+			uart_putchar('\n');
+		}
+		_delay_ms(100);
+	}
+}
+
 void home_steppers(void) {
 	unsigned char spi_buffer;
 		
+		
 	//home the bottom link
+	
 	while ((PINC & ENDSTOP6) || (PINC & ENDSTOP7) || (PINA & ENDSTOP8) || (PINA & ENDSTOP9) || (PINA & ENDSTOP10) || (PINB & ENDSTOP11)) { //loop until all endstops are pressed (endstops are active low)
 		//clear shift register
 		PORTA &= ~SHIFT_CLEAR;		//write low
@@ -68,17 +127,17 @@ void home_steppers(void) {
 		PORTB |= LATCH;
 		PORTB &= ~LATCH;
 					
-		SPDR = ((unsigned char) /*compute and transmit first instruction */
-		((1 << 7) | ((PINB & ENDSTOP11) ? 1 << 6 : 0)
-		| (1 << 5) | ((PINA & ENDSTOP10) ? 1 << 4 : 0)
+		SPDR = ((unsigned char) //compute and transmit first instruction 
+		( (1 << 7) | ((PINB & ENDSTOP11) ? 1 << 6 : 0)
+		| (0 << 5) | ((PINA & ENDSTOP10) ? 1 << 4 : 0)
 		| (1 << 3) | ((PINA & ENDSTOP9) ? 1 << 2 : 0)
-		| (1 << 1) | ((PINA & ENDSTOP8) ? 1 << 0 : 0)));
-		spi_buffer = ((unsigned char) /*while waiting for first transfer to finish, compute second instruction*/
-		(1 << 7) | ((PINC & ENDSTOP7) ? 1 << 6 : 0)
-		| (1 << 5) | ((PINC & ENDSTOP6) ? 1 << 4 : 0));
+		| (0 << 1) | ((PINA & ENDSTOP8) ? 1 << 0 : 0)));
+		spi_buffer = ((unsigned char) // while waiting for first transfer to finish, compute second instruction
+		(  1 << 7) | ((PINC & ENDSTOP7) ? 1 << 6 : 0)
+		| (0 << 5) | ((PINC & ENDSTOP6) ? 1 << 4 : 0));
 		while(!(SPSR & (1<<SPIF)));  //Wait for first SPI transfer to finish
-		SPDR = spi_buffer; /*send second instruction*/
-		spi_buffer = ((unsigned char)0); /*compute third instruction*/
+		SPDR = spi_buffer; //send second instruction
+		spi_buffer = ((unsigned char)0); // compute third instruction
 		while(!(SPSR & (1<<SPIF))); //Wait for second SPI transfer to finish
 		SPDR = spi_buffer; //send third instruction
 		while(!(SPSR & (1<<SPIF))); //Wait for third SPI transfer to finish
@@ -87,7 +146,7 @@ void home_steppers(void) {
 		PORTB |= LATCH;
 		PORTB &= ~LATCH;
 										
-		_delay_ms(30);			
+		_delay_ms(100);			
 	}
 	
 	//home the top link
@@ -102,14 +161,14 @@ void home_steppers(void) {
 				SPDR = ((unsigned char) 0); /*transmit first instruction */
 				spi_buffer = ((unsigned char) /*while waiting for first transfer to finish, compute second instruction*/
 				( (1 << 3) | ((PINC & ENDSTOP5) ? 1 << 2 : 0)
-				| (1 << 1) | ((PINC & ENDSTOP4) ? 1 << 0 : 0)));
+				| (0 << 1) | ((PINC & ENDSTOP4) ? 1 << 0 : 0)));
 				while(!(SPSR & (1<<SPIF)));  //Wait for first SPI transfer to finish
 				SPDR = spi_buffer; /*send second instruction*/
 				spi_buffer = ((unsigned char) /*while waiting for second transfer to finish, compute third instruction*/
 				( (1 << 7) | ((PINC & ENDSTOP3) ? 1 << 6: 0)
-				| (1 << 5) | ((PINC & ENDSTOP2) ? 1 << 4 : 0)
+				| (0 << 5) | ((PINC & ENDSTOP2) ? 1 << 4 : 0)
 				| (1 << 3) | ((PINC & ENDSTOP1) ? 1 << 2 : 0)
-				| (1 << 1) | ((PINC & ENDSTOP0) ? 1 << 0 : 0)));
+				| (0 << 1) | ((PINC & ENDSTOP0) ? 1 << 0 : 0)));
 				while(!(SPSR & (1<<SPIF))); //Wait for second SPI transfer to finish
 				SPDR = spi_buffer; //send third instruction
 				while(!(SPSR & (1<<SPIF))); //Wait for third SPI transfer to finish
@@ -118,7 +177,7 @@ void home_steppers(void) {
 				PORTB |= LATCH;
 				PORTB &= ~LATCH;
 				
-				_delay_ms(30);
+				_delay_ms(100);
 	}
 	
 	//set counts to 0
@@ -181,22 +240,22 @@ void send_step_instruction(int instruction) {
 			PORTB &= ~LATCH;
 	
 			SPDR = ((unsigned char) /*compute and transmit first instruction */
-			( (currentStepperCounts[11] > stepperTargets[11]) << 7) | ((currentStepperCounts[11] != stepperTargets[11]) << 6)
-			| ((currentStepperCounts[10] > stepperTargets[10]) << 5) | ((currentStepperCounts[10] != stepperTargets[10]) << 4)
+			( ( currentStepperCounts[11] > stepperTargets[11]) << 7) | ((currentStepperCounts[11] != stepperTargets[11]) << 6)
+			| ((currentStepperCounts[10] < stepperTargets[10]) << 5) | ((currentStepperCounts[10] != stepperTargets[10]) << 4)
 			| ((currentStepperCounts[9] > stepperTargets[9]) << 3) | ((currentStepperCounts[9] != stepperTargets[9]) << 2)
-			| ((currentStepperCounts[8] > stepperTargets[8]) << 1) | ((currentStepperCounts[8] != stepperTargets[8]) << 0));		
+			| ((currentStepperCounts[8] < stepperTargets[8]) << 1) | ((currentStepperCounts[8] != stepperTargets[8]) << 0));		
 			spi_buffer = ((unsigned char) /*while waiting for first transfer to finish, compute second instruction*/
-			( (currentStepperCounts[7] > stepperTargets[7]) << 7) | ((currentStepperCounts[7] != stepperTargets[7]) << 6)
-			| ((currentStepperCounts[6] > stepperTargets[6]) << 5) | ((currentStepperCounts[6] != stepperTargets[6]) << 4)
+			( ( currentStepperCounts[7] > stepperTargets[7]) << 7) | ((currentStepperCounts[7] != stepperTargets[7]) << 6)
+			| ((currentStepperCounts[6] < stepperTargets[6]) << 5) | ((currentStepperCounts[6] != stepperTargets[6]) << 4)
 			| ((currentStepperCounts[5] > stepperTargets[5]) << 3) | ((currentStepperCounts[5] != stepperTargets[5]) << 2)
-			| ((currentStepperCounts[4] > stepperTargets[4]) << 1) | ((currentStepperCounts[4] != stepperTargets[4]) << 0));
+			| ((currentStepperCounts[4] < stepperTargets[4]) << 1) | ((currentStepperCounts[4] != stepperTargets[4]) << 0));
 			while(!(SPSR & (1<<SPIF)));  //Wait for first SPI transfer to finish
 			SPDR = spi_buffer; /*send second instruction*/
 			spi_buffer = ((unsigned char) /*while waiting for second transfer to finish, compute third instruction*/		
 			   ((currentStepperCounts[3] > stepperTargets[3]) << 7) | ((currentStepperCounts[3] != stepperTargets[3]) << 6)
-			 | ((currentStepperCounts[2] > stepperTargets[2]) << 5) | ((currentStepperCounts[2] != stepperTargets[2]) << 4)
+			 | ((currentStepperCounts[2] < stepperTargets[2]) << 5) | ((currentStepperCounts[2] != stepperTargets[2]) << 4)
 			 | ((currentStepperCounts[1] > stepperTargets[1]) << 3) | ((currentStepperCounts[1] != stepperTargets[1]) << 2)			
-			 | ((currentStepperCounts[0] > stepperTargets[0]) << 1) | ((currentStepperCounts[0] != stepperTargets[0]) << 0));
+			 | ((currentStepperCounts[0] < stepperTargets[0]) << 1) | ((currentStepperCounts[0] != stepperTargets[0]) << 0));
 			while(!(SPSR & (1<<SPIF))); //Wait for second SPI transfer to finish
 			SPDR = spi_buffer; //send third instruction
 			while(!(SPSR & (1<<SPIF))); //Wait for third SPI transfer to finish
@@ -209,7 +268,7 @@ void send_step_instruction(int instruction) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 		
-			_delay_ms(3); //todo: implement delay using timer
+			_delay_ms(300); //todo: implement delay using timer
 			
 		}
 	}
@@ -230,22 +289,22 @@ void send_teleop_step(unsigned long* stepperTargets) {
 			PORTB &= ~LATCH;
 			
 			SPDR = ((unsigned char) /*compute and transmit first instruction */
-			((currentStepperCounts[11] > stepperTargets[11]) << 7) | ((currentStepperCounts[11] != stepperTargets[11]) << 6)
-			| ((currentStepperCounts[10] > stepperTargets[10]) << 5) | ((currentStepperCounts[10] != stepperTargets[10]) << 4)
+			( ( currentStepperCounts[11] > stepperTargets[11]) << 7) | ((currentStepperCounts[11] != stepperTargets[11]) << 6)
+			| ((currentStepperCounts[10] < stepperTargets[10]) << 5) | ((currentStepperCounts[10] != stepperTargets[10]) << 4)
 			| ((currentStepperCounts[9] > stepperTargets[9]) << 3) | ((currentStepperCounts[9] != stepperTargets[9]) << 2)
-			| ((currentStepperCounts[8] > stepperTargets[8]) << 1) | ((currentStepperCounts[8] != stepperTargets[8]) << 0));
+			| ((currentStepperCounts[8] < stepperTargets[8]) << 1) | ((currentStepperCounts[8] != stepperTargets[8]) << 0));
 			spi_buffer = ((unsigned char) /*while waiting for first transfer to finish, compute second instruction*/
-			((currentStepperCounts[7] > stepperTargets[7]) << 7) | ((currentStepperCounts[7] != stepperTargets[7]) << 6)
-			| ((currentStepperCounts[6] > stepperTargets[6]) << 5) | ((currentStepperCounts[6] != stepperTargets[6]) << 4)
+			( ( currentStepperCounts[7] > stepperTargets[7]) << 7) | ((currentStepperCounts[7] != stepperTargets[7]) << 6)
+			| ((currentStepperCounts[6] < stepperTargets[6]) << 5) | ((currentStepperCounts[6] != stepperTargets[6]) << 4)
 			| ((currentStepperCounts[5] > stepperTargets[5]) << 3) | ((currentStepperCounts[5] != stepperTargets[5]) << 2)
-			| ((currentStepperCounts[4] > stepperTargets[4]) << 1) | ((currentStepperCounts[4] != stepperTargets[4]) << 0));
+			| ((currentStepperCounts[4] < stepperTargets[4]) << 1) | ((currentStepperCounts[4] != stepperTargets[4]) << 0));
 			while(!(SPSR & (1<<SPIF)));  //Wait for first SPI transfer to finish
 			SPDR = spi_buffer; /*send second instruction*/
 			spi_buffer = ((unsigned char) /*while waiting for second transfer to finish, compute third instruction*/
-			((currentStepperCounts[3] > stepperTargets[3]) << 7) | ((currentStepperCounts[3] != stepperTargets[3]) << 6)
-			| ((currentStepperCounts[2] > stepperTargets[2]) << 5) | ((currentStepperCounts[2] != stepperTargets[2]) << 4)
+			( ( currentStepperCounts[3] > stepperTargets[3]) << 7) | ((currentStepperCounts[3] != stepperTargets[3]) << 6)
+			| ((currentStepperCounts[2] < stepperTargets[2]) << 5) | ((currentStepperCounts[2] != stepperTargets[2]) << 4)
 			| ((currentStepperCounts[1] > stepperTargets[1]) << 3) | ((currentStepperCounts[1] != stepperTargets[1]) << 2)
-			| ((currentStepperCounts[0] > stepperTargets[0]) << 1) | ((currentStepperCounts[0] != stepperTargets[0]) << 0));
+			| ((currentStepperCounts[0] < stepperTargets[0]) << 1) | ((currentStepperCounts[0] != stepperTargets[0]) << 0));
 			while(!(SPSR & (1<<SPIF))); //Wait for second SPI transfer to finish
 			SPDR = spi_buffer; //send third instruction
 			while(!(SPSR & (1<<SPIF))); //Wait for third SPI transfer to finish
@@ -258,7 +317,7 @@ void send_teleop_step(unsigned long* stepperTargets) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 			
-			_delay_ms(3); //todo: implement delay using timer
+			_delay_ms(300); //todo: implement delay using timer
 			
 		}
 	}

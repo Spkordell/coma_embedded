@@ -38,6 +38,7 @@
 
 void init_endstops(void);
 void init_steppers(void);
+void test_endstops(void);
 void home_steppers(void);
 void init_SPI(void);
 void spi_send(unsigned char byte);
