@@ -19,7 +19,7 @@ int main(void) {
 	sei();	
 		
 	//test_endstops();		
-	home_steppers();
+	//home_steppers();
 			
 	//get mode selection from host computer
 	uart_putchar('R');				//send ready signal to host computer
@@ -27,10 +27,7 @@ int main(void) {
 	//servo_test(WRIST_ROTATE_SERVO);
 	//servo_test(WRIST_FLEX_SERVO);
 	//servo_test(GRIPPER_SERVO);
-	
 
-	
-	
 	while(!uart_char_waiting());    //wait for mode selection
 	if (uart_getchar() == 'T') {
 		mode = TELEOP;
