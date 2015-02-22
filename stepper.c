@@ -268,7 +268,7 @@ void send_step_instruction(int instruction) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 		
-			_delay_ms(300); //todo: implement delay using timer
+			_delay_ms(100); //todo: implement delay using timer
 			
 		}
 	}
@@ -278,7 +278,6 @@ void send_step_instruction(int instruction) {
 
 void send_teleop_step(unsigned long* stepperTargets) {
 	unsigned char spi_buffer;	
-		
 	for (unsigned int stepper = 0; stepper < STEPPER_COUNT; stepper++) {
 		while (currentStepperCounts[stepper] != stepperTargets[stepper]) {
 			//clear shift register
@@ -317,7 +316,7 @@ void send_teleop_step(unsigned long* stepperTargets) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 			
-			_delay_ms(300); //todo: implement delay using timer
+			_delay_ms(100); //todo: implement delay using timer
 			
 		}
 	}

@@ -78,6 +78,7 @@ void parseInput(void) {
 				break;
 			}
 			if (*p == 'H') {
+				uart_putchar('R'); //signal that we are ready for the next command
 				home_steppers();
 				instuctionToAdd = 0;
 				break;
@@ -95,6 +96,7 @@ void parseInput(void) {
 						
 			if (mode == TELEOP) {
 				instuctionToAdd = 0;
+				//uart_putchar(*p);
 				if (*p == ':' || *p == ';' || *p == '\r') {
 					*p = '\0';
 					target = atol(buffer);
@@ -108,7 +110,7 @@ void parseInput(void) {
 					if (at >= 15) {
 						at = 0;
 						uart_putchar('R'); //signal that we are ready for the next command	
-						send_servo_instruction(servo_instruction);
+						//send_servo_instruction(servo_instruction); //TODO: add this back on once the limit switches for the end effector are attached. Without the limits, the program will freeze opening/closing the gripper
 						send_teleop_step(teleop_instruction);
 					}
 				} else {
