@@ -109,7 +109,7 @@ void test_endstops(void) {
 			uart_putchar('0');
 			uart_putchar('\n');
 		}
-		_delay_ms(100);
+		_delay_ms(25);
 	}
 }
 
@@ -146,7 +146,7 @@ void home_steppers(void) {
 		PORTB |= LATCH;
 		PORTB &= ~LATCH;
 										
-		_delay_ms(100);			
+		_delay_ms(25);			
 	}
 	
 	//home the top link
@@ -177,7 +177,7 @@ void home_steppers(void) {
 				PORTB |= LATCH;
 				PORTB &= ~LATCH;
 				
-				_delay_ms(100);
+				_delay_ms(25);
 	}
 	
 	//set counts to 0
@@ -197,7 +197,7 @@ void spi_send(unsigned char byte){
 }
 
 char is_fault() {
-	return (~PIND & STEPPER_FAULT);
+	return (~PIND & STEPPER_FAULT);	
 }
 
 /*
@@ -268,7 +268,7 @@ void send_step_instruction(int instruction) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 		
-			_delay_ms(100); //todo: implement delay using timer
+			_delay_ms(25); //todo: implement delay using timer
 			
 		}
 	}
@@ -316,7 +316,7 @@ void send_teleop_step(unsigned long* stepperTargets) {
 				currentStepperCounts[i] += (currentStepperCounts[i] != stepperTargets[i]) * (currentStepperCounts[i] < stepperTargets[i] ? 1 : -1);
 			}
 			
-			_delay_ms(100); //todo: implement delay using timer
+			_delay_ms(25); //todo: implement delay using timer
 			
 		}
 	}

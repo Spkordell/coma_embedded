@@ -57,11 +57,12 @@ void parseInput(void) {
 	
 	//extract the timestamp, stepper, and target
 	while (1) {
+		/*
 		while (is_fault()) {
 			//could also do this using external GPIO interrupt INT0 instead of polling
 			uart_putchar('F');
 			_delay_us(2);
-		}
+		}*/
 		if(uart_char_waiting()) {
 			*p = uart_getchar();
 			
