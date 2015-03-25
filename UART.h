@@ -12,8 +12,8 @@
 #define BAUD 115200
 #define BAUD_TOL 2 //set the baud rate tolerance to 2%
 
-#define UART_IN_FIFO_SIZE 4096
-#define UART_OUT_FIFO_SIZE 4096
+#define UART_IN_FIFO_SIZE 2048
+#define UART_OUT_FIFO_SIZE 1024
 
 #define UART0_DATA_EMPTY_IRQ USART0_UDRE_vect //UART data buffer ready interrupt vector
 #define UART0_RX_IRQ USART0_RX_vect //UART data received interrupt vector

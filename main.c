@@ -163,6 +163,7 @@ void parseInput(void) {
 	}
 }
 
+#if 0
 ISR(TIMER3_COMPA_vect) {
 	//called every millisecond	
 	//cli(); //temporary, for testing, todo
@@ -192,3 +193,4 @@ ISR(TIMER3_COMPA_vect) {
 	
 	//sei(); //temporary, for testing, todo
 }
+#endif
