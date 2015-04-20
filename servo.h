@@ -10,6 +10,7 @@
 #define SERVO_H_
 
 #define GRIPPER_SERVO_PIN (1 << PB3) //OC0A //note: this servo is continuous rotation with limit switches on each endpoint
+//#define GRIPPER_SERVO_PIN (1 << PD7) //OC2A //note: this servo is continuous rotation with limit switches on each endpoint
 #define WRIST_ROTATE_SERVO_PIN (1 << PD4) // OC1B
 #define WRIST_FLEX_SERVO_PIN (1 << PD5) //OC1A
 #define GRIPPER_ENDSTOP_OPEN_PIN (1 << PB1)

@@ -33,6 +33,8 @@
 #define ENDSTOP11 (1 << PB0)
 
 #define STEPPER_COUNT 12
+#define STEPPER_DELAY 10 //ms min delay between steps is 1.3 ms
+#define HOMING_STEPPER_DELAY 10 //ms
 #define PATH_INSTRUCTION_BUFFER_SIZE 8
 #define TELEOP_INSTRUCTION_BUFFER_SIZE 64
 

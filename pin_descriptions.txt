@@ -34,8 +34,8 @@ PD:
 	3: 
 	4: OC1B: WRIST_ROTATE_SERVO
 	5: OC1A: WRIST_FLEX_SERVO
-	6:  
-	7: 
+	6: OC2B
+	7: OC2A
 
 
 
